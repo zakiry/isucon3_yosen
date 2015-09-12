@@ -80,10 +80,7 @@ class Isucon3App < Sinatra::Base
     user  = get_user
 
     total = mysql.query("SELECT count(*) AS c FROM memos WHERE is_private=0").first["c"]
-    memos = mysql.query("SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100")
-#    memos.each do |row|
-#      row["username"] = mysql.xquery("SELECT username FROM users WHERE id=?", row["user"]).first["username"]
-#    end
+    memos = mysql.query("SELECT id, content_line, username, created_at FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100")
     erb :index, :layout => :base, :locals => {
       :memos => memos,
       :page  => 0,
@@ -98,13 +95,10 @@ class Isucon3App < Sinatra::Base
 
     page  = params["page"].to_i
     total = mysql.xquery('SELECT count(*) AS c FROM memos WHERE is_private=0').first["c"]
-    memos = mysql.xquery("SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET #{page * 100}")
+    memos = mysql.xquery("SELECT id, content_line, username, created_at FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET #{page * 100}")
     if memos.count == 0
       halt 404, "404 Not Found"
     end
-#    memos.each do |row|
-#      row["username"] = mysql.xquery("SELECT username FROM users WHERE id=?", row["user"]).first["username"]
-#    end
     erb :index, :layout => :base, :locals => {
       :memos => memos,
       :page  => page,
@@ -152,7 +146,7 @@ class Isucon3App < Sinatra::Base
     user  = get_user
     require_user(user)
 
-    memos = mysql.xquery('SELECT id, content, is_private, created_at, updated_at FROM memos WHERE user=? ORDER BY created_at DESC', user["id"])
+    memos = mysql.xquery('SELECT id, content_line, is_private, created_at FROM memos WHERE user=? ORDER BY created_at DESC', user["id"])
     erb :mypage, :layout => :base, :locals => {
       :user  => user,
       :memos => memos,
@@ -172,7 +166,6 @@ class Isucon3App < Sinatra::Base
         halt 404, "404 Not Found"
       end
     end
-#    memo["username"] = mysql.xquery('SELECT username FROM users WHERE id=?', memo["user"]).first["username"]
     memo["content_html"] = gen_markdown(memo["content"])
     if user["id"] == memo["user"]
       cond = ""
@@ -182,7 +175,7 @@ class Isucon3App < Sinatra::Base
     memos = []
     older = nil
     newer = nil
-    results = mysql.xquery("SELECT * FROM memos WHERE user=? #{cond} ORDER BY created_at", memo["user"])
+    results = mysql.xquery("SELECT id FROM memos WHERE user=? #{cond} ORDER BY id", memo["user"])
     results.each do |m|
       memos.push(m)
     end
@@ -207,10 +200,11 @@ class Isucon3App < Sinatra::Base
     anti_csrf
 
     mysql.xquery(
-      'INSERT INTO memos (user, username, content, is_private, created_at) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO memos (user, username, content, content_line, is_private, created_at) VALUES (?, ?, ?, ?, ?, ?)',
       user["id"],
       user["username"],
       params["content"],
+      params["content"].split(/\r?\n/).first,
       params["is_private"].to_i,
       Time.now,
     )
