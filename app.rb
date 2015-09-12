@@ -80,10 +80,11 @@ class Isucon3App < Sinatra::Base
     user  = get_user
 
     total = mysql.query("SELECT count(*) AS c FROM memos WHERE is_private=0").first["c"]
-    memos = mysql.query("SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100")
-    memos.each do |row|
-      row["username"] = mysql.xquery("SELECT username FROM users WHERE id=?", row["user"]).first["username"]
-    end
+    memos = mysql.query("SELECT m.id as id, m.user as user, m.content as content, m.is_private as is_private, m.created_at as created_at, m.updated_at as updated_at, u.username as username FROM memos m JOIN users u ON m.user=u.id WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100")
+#    memos = mysql.query("SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100")
+#    memos.each do |row|
+#      row["username"] = mysql.xquery("SELECT username FROM users WHERE id=?", row["user"]).first["username"]
+#    end
     erb :index, :layout => :base, :locals => {
       :memos => memos,
       :page  => 0,
