@@ -1,4 +1,4 @@
-source 'https://rubygems.org'
+source 'http://rubygems.org'
 gem 'sinatra', '1.4.3'
 gem 'json',    '1.8.0'
 gem 'mysql2',  '0.3.18'
@@ -7,6 +7,7 @@ gem 'dalli',   '2.6.4'
 gem 'erubis',  '2.7.0'
 gem 'foreman', '0.63.0'
 gem 'mysql2-cs-bind', '0.0.6'
+gem 'rdiscount'
 
 group :development do
   # run "bundle exec shotgun" on development
